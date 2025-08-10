@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Financiero y Tareas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #7c3aed;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-color: #1f2937;
+            --light-color: #f3f4f6;
+            --white: #ffffff;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--dark-color);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-tab:hover {
+            background-color: var(--light-color);
+        }
+
+        .nav-tab.active {
+            color: var(--primary-color);
+        }
+
+        .nav-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem 0;
+            min-height: calc(100vh - 200px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
+            text-align: center;
+            padding: 2rem;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: var(--white);
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background-color: var(--light-color);
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Transactions */
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .transaction-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-category {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--light-color);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .transaction-amount {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .income { color: var(--success-color); }
+        .expense { color: var(--danger-color); }
+
+        /* Tasks */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .task-item.completed {
+            opacity: 0.7;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+
+        .task-checkbox {
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-right: 1rem;
+            cursor: pointer;
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .task-priority {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 1rem;
+        }
+
+        .priority-high {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .priority-medium {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .priority-low {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--dark-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .modal-content {
+                margin: 1rem;
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: var(--dark-color);
+            color: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            animation: slideUp 0.3s ease;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Financiero y Tareas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Estilos CSS sin cambios */
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #7c3aed;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-color: #1f2937;
+            --light-color: #f3f4f6;
+            --white: #ffffff;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        /* ... resto de los estilos sin cambios ... */
+    </style>
+</head>
+<body>
+    <!-- HTML sin cambios -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-wallet"></i>
+                    Gestor Financiero
+                </div>
+                <div class="header-stats">
+                    <span id="currentDate"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav>
+        <div class="container">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('dashboard')">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </button>
+                <button class="nav-tab" onclick="switchTab('transactions')">
+                    <i class="fas fa-exchange-alt"></i> Transacciones
+                </button>
+                <button class="nav-tab" onclick="switchTab('tasks')">
+                    <i class="fas fa-tasks"></i> Tareas
+                </button>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <h2 style="margin-bottom: 2rem;">Resumen General</h2>
+            
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="stat-value" id="totalIncome">CUP0</div>
+                    <div class="stat-label">Ingresos Totales</div>
+                </div>
+                
+                <div class="stat-card" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="stat-value" id="totalExpenses">CUP0</div>
+                    <div class="stat-label">Gastos Totales</div>
+                </div>
+                
+                <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <div class="stat-icon">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <div class="stat-value" id="balance">CUP0</div>
+                    <div class="stat-label">Balance</div>
+                </div>
+                
+                <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="stat-value" id="totalTasks">0</div>
+                    <div class="stat-label">Tareas Pendientes</div>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Distribución de Gastos</h3>
+                <div class="chart-container">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Tareas Recientes</h3>
+                <div id="recentTasks"></div>
+            </div>
+        </div>
+        <!-- Transactions Tab -->
+        <div id="transactions" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>Transacciones</h2>
+                <button class="btn btn-primary" onclick="openTransactionModal()">
+                    <i class="fas fa-plus"></i> Agregar Transacción
+                </button>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Filtros</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="filterType">Tipo</label>
+                        <select id="filterType" onchange="filterTransactions()">
+                            <option value="all">Todas</option>
+                            <option value="income">Ingresos</option>
+                            <option value="expense">Gastos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterCategory">Categoría</label>
+                        <select id="filterCategory" onchange="filterTransactions()">
+                            <option value="all">Todas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterMonth">Mes</label>
+                        <input type="month" id="filterMonth" onchange="filterTransactions()">
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Lista de Transacciones</h3>
+                <div class="table-container">
+                    <table id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th>Tipo</th>
+                                <th>Monto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Tasks Tab -->
+        <div id="tasks" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>Tareas</h2>
+                <button class="btn btn-primary" onclick="openTaskModal()">
+                    <i class="fas fa-plus"></i> Agregar Tarea
+                </button>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Filtros</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-sm" onclick="filterTasks('all')">Todas</button>
+                    <button class="btn btn-sm" onclick="filterTasks('pending')">Pendientes</button>
+                    <button class="btn btn-sm" onclick="filterTasks('completed')">Completadas</button>
+                    <button class="btn btn-sm" onclick="filterTasks('high')">Alta Prioridad</button>
+                </div>
+            </div>
+            <div class="task-list" id="taskList">
+                <!-- Tasks will be dynamically added here -->
+            </div>
+        </div>
+    </main>
+    <!-- Transaction Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Agregar Transacción</h3>
+                <button class="close-btn" onclick="closeModal('transactionModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="transactionForm" onsubmit="saveTransaction(event)">
+                <div class="form-group">
+                    <label for="transactionType">Tipo</label>
+                    <select id="transactionType" required>
+                        <option value="income">Ingreso</option>
+                        <option value="expense">Gasto</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transactionDescription">Descripción</label>
+                    <input type="text" id="transactionDescription" required placeholder="Ej: Salario, Compras, etc.">
+                </div>
+                <div class="form-group">
+                    <label for="transactionCategory">Categoría</label>
+                    <select id="transactionCategory" required>
+                        <option value="">Seleccionar categoría</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transactionAmount">Monto (CUP)</label>
+                    <input type="number" id="transactionAmount" step="0.01" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="transactionDate">Fecha</label>
+                    <input type="date" id="transactionDate" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-save"></i> Guardar Transacción
+                </button>
+            </form>
+        </div>
+    </div>
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="taskModalTitle">Agregar Tarea</h3>
+                <button class="close-btn" onclick="closeModal('taskModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="taskForm" onsubmit="saveTask(event)">
+                <div class="form-group">
+                    <label for="taskTitle">Título</label>
+                    <input type="text" id="taskTitle" required placeholder="Ej: Pagar facturas">
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Descripción</label>
+                    <textarea id="taskDescription" rows="3" placeholder="Detalles de la tarea..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Prioridad</label>
+                    <select id="taskPriority" required>
+                        <option value="low">Baja</option>
+                        <option value="medium">Media</option>
+                        <option value="high">Alta</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskDueDate">Fecha de Vencimiento</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-save"></i> Guardar Tarea
+                </button>
+            </form>
+        </div>
+    </div>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+    <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Financiero y Tareas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Estilos CSS sin cambios */
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #7c3aed;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-color: #1f2937;
+            --light-color: #f3f4f6;
+            --white: #ffffff;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        /* ... resto de los estilos sin cambios ... */
+    </style>
+</head>
+<body>
+    <!-- HTML sin cambios -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-wallet"></i>
+                    Gestor Financiero
+                </div>
+                <div class="header-stats">
+                    <span id="currentDate"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav>
+        <div class="container">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('dashboard')">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </button>
+                <button class="nav-tab" onclick="switchTab('transactions')">
+                    <i class="fas fa-exchange-alt"></i> Transacciones
+                </button>
+                <button class="nav-tab" onclick="switchTab('tasks')">
+                    <i class="fas fa-tasks"></i> Tareas
+                </button>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <h2 style="margin-bottom: 2rem;">Resumen General</h2>
+            
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="stat-value" id="totalIncome">$0</div>
+                    <div class="stat-label">Ingresos Totales</div>
+                </div>
+                
+                <div class="stat-card" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="stat-value" id="totalExpenses">$0</div>
+                    <div class="stat-label">Gastos Totales</div>
+                </div>
+                
+                <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <div class="stat-icon">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <div class="stat-value" id="balance">$0</div>
+                    <div class="stat-label">Balance</div>
+                </div>
+                
+                <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="stat-value" id="totalTasks">0</div>
+                    <div class="stat-label">Tareas Pendientes</div>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Distribución de Gastos</h3>
+                <div class="chart-container">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Tareas Recientes</h3>
+                <div id="recentTasks"></div>
+            </div>
+        </div>
+        <!-- Transactions Tab -->
+        <div id="transactions" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>Transacciones</h2>
+                <button class="btn btn-primary" onclick="openTransactionModal()">
+                    <i class="fas fa-plus"></i> Agregar Transacción
+                </button>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Filtros</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="filterType">Tipo</label>
+                        <select id="filterType" onchange="filterTransactions()">
+                            <option value="all">Todas</option>
+                            <option value="income">Ingresos</option>
+                            <option value="expense">Gastos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterCategory">Categoría</label>
+                        <select id="filterCategory" onchange="filterTransactions()">
+                            <option value="all">Todas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterMonth">Mes</label>
+                        <input type="month" id="filterMonth" onchange="filterTransactions()">
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Lista de Transacciones</h3>
+                <div class="table-container">
+                    <table id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th>Tipo</th>
+                                <th>Monto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Tasks Tab -->
+        <div id="tasks" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>Tareas</h2>
+                <button class="btn btn-primary" onclick="openTaskModal()">
+                    <i class="fas fa-plus"></i> Agregar Tarea
+                </button>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">Filtros</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-sm" onclick="filterTasks('all')">Todas</button>
+                    <button class="btn btn-sm" onclick="filterTasks('pending')">Pendientes</button>
+                    <button class="btn btn-sm" onclick="filterTasks('completed')">Completadas</button>
+                    <button class="btn btn-sm" onclick="filterTasks('high')">Alta Prioridad</button>
+                </div>
+            </div>
+            <div class="task-list" id="taskList">
+                <!-- Tasks will be dynamically added here -->
+            </div>
+        </div>
+    </main>
+    <!-- Transaction Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Agregar Transacción</h3>
+                <button class="close-btn" onclick="closeModal('transactionModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="transactionForm" onsubmit="saveTransaction(event)">
+                <div class="form-group">
+                    <label for="transactionType">Tipo</label>
+                    <select id="transactionType" required>
+                        <option value="income">Ingreso</option>
+                        <option value="expense">Gasto</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transactionDescription">Descripción</label>
+                    <input type="text" id="transactionDescription" required placeholder="Ej: Salario, Compras, etc.">
+                </div>
+                <div class="form-group">
+                    <label for="transactionCategory">Categoría</label>
+                    <select id="transactionCategory" required>
+                        <option value="">Seleccionar categoría</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="transactionAmount">Monto ($)</label>
+                    <input type="number" id="transactionAmount" step="0.01" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="transactionDate">Fecha</label>
+                    <input type="date" id="transactionDate" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-save"></i> Guardar Transacción
+                </button>
+            </form>
+        </div>
+    </div>
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="taskModalTitle">Agregar Tarea</h3>
+                <button class="close-btn" onclick="closeModal('taskModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="taskForm" onsubmit="saveTask(event)">
+                <div class="form-group">
+                    <label for="taskTitle">Título</label>
+                    <input type="text" id="taskTitle" required placeholder="Ej: Pagar facturas">
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Descripción</label>
+                    <textarea id="taskDescription" rows="3" placeholder="Detalles de la tarea..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="taskPriority">Prioridad</label>
+                    <select id="taskPriority" required>
+                        <option value="low">Baja</option>
+                        <option value="medium">Media</option>
+                        <option value="high">Alta</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskDueDate">Fecha de Vencimiento</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-save"></i> Guardar Tarea
+                </button>
+            </form>
+        </div>
+    </div>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+    <script>
+        // Data Storage
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let editingTransactionId = null;
+        let editingTaskId = null;
+        // Categories
+        const incomeCategories = ['Salario', 'Inversión', 'Freelance', 'Bono', 'Otro Ingreso'];
+        const expenseCategories = ['Comida', 'Transporte', 'Vivienda', 'Entretenimiento', 'Salud', 'Educación', 'Ropa', 'Otro Gasto'];
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentDate();
+            loadTransactions();
+            loadTasks();
+            updateDashboard();
+            updateCategoryFilters();
+            setTodayDate();
+        });
+        // Tab Navigation
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            }
+        }
+        // Date Functions
+        function updateCurrentDate() {
+            const date = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = date.toLocaleDateString('es-ES', options);
+        }
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transactionDate').value = today;
+        }
+        // Toast Notification
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+        // Transaction Functions
+        function openTransactionModal(transactionId = null) {
+            const modal = document.getElementById('transactionModal');
+            const form = document.getElementById('transactionForm');
+            
+            if (transactionId) {
+                const transaction = transactions.find(t => t.id === transactionId);
+                if (transaction) {
+                    editingTransactionId = transactionId;
+                    document.getElementById('transactionType').value = transaction.type;
+                    document.getElementById('transactionDescription').value = transaction.description;
+                    document.getElementById('transactionCategory').value = transaction.category;
+                    document.getElementById('transactionAmount').value = transaction.amount;
+                    document.getElementById('transactionDate').value = transaction.date;
+                    document.getElementById('taskModalTitle').textContent = 'Editar Transacción';
+                }
+            } else {
+                editingTransactionId = null;
+                form.reset();
+                setTodayDate();
+                document.getElementById('taskModalTitle').textContent = 'Agregar Transacción';
+            }
+            
+            updateCategoryOptions();
+            modal.classList.add('active');
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'transactionModal') {
+                document.getElementById('transactionForm').reset();
+                setTodayDate();
+            }
+        }
+        function updateCategoryOptions() {
+            const type = document.getElementById('transactionType').value;
+            const categorySelect = document.getElementById('transactionCategory');
+            const categories = type === 'income' ? incomeCategories : expenseCategories;
+            
+            categorySelect.innerHTML = '<option value="">Seleccionar categoría</option>';
+            categories.forEach(category => {
+                categorySelect.innerHTML += `<option value="${category}">${category}</option>`;
+            });
+        }
+        document.getElementById('transactionType').addEventListener('change', updateCategoryOptions);
+        function saveTransaction(event) {
+            event.preventDefault();
+            
+            const transaction = {
+                id: editingTransactionId || Date.now(),
+                type: document.getElementById('transactionType').value,
+                description: document.getElementById('transactionDescription').value,
+                category: document.getElementById('transactionCategory').value,
+                amount: parseFloat(document.getElementById('transactionAmount').value),
+                date: document.getElementById('transactionDate').value
+            };
+            
+            if (editingTransactionId) {
+                const index = transactions.findIndex(t => t.id === editingTransactionId);
+                transactions[index] = transaction;
+                showToast('Transacción actualizada exitosamente');
+            } else {
+                transactions.push(transaction);
+                showToast('Transacción agregada exitosamente');
+            }
+            
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            loadTransactions();
+            updateDashboard();
+            closeModal('transactionModal');
+        }
+        function deleteTransaction(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta transacción?')) {
+                transactions = transactions.filter(t => t.id !== id);
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                loadTransactions();
+                updateDashboard();
+                showToast('Transacción eliminada');
+            }
+        }
+        function loadTransactions() {
+            const tbody = document.getElementById('transactionsBody');
+            tbody.innerHTML = '';
+            
+            const filteredTransactions = getFilteredTransactions();
+            
+            filteredTransactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatDate(transaction.date)}</td>
+                    <td>${transaction.description}</td>
+                    <td><span class="transaction-category">${transaction.category}</span></td>
+                    <td><i class="fas fa-${transaction.type === 'income' ? 'arrow-down income' : 'arrow-up expense'}"></i></td>
+                    <td class="${transaction.type === 'income' ? 'income' : 'expense'}">
+                        ${transaction.type === 'income' ? '+' : '-'}$${transaction.amount.toFixed(2)}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="openTransactionModal(${transaction.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTransaction(${transaction.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        function getFilteredTransactions() {
+            let filtered = [...transactions];
+            
+            const type = document.getElementById('filterType').value;
+            const category = document.getElementById('filterCategory').value;
+            const month = document.getElementById('filterMonth').value;
+            
+            if (type !== 'all') {
+                filtered = filtered.filter(t => t.type === type);
+            }
+            
+            if (category !== 'all') {
+                filtered = filtered.filter(t => t.category === category);
+            }
+            
+            if (month) {
+                filtered = filtered.filter(t => t.date.startsWith(month));
+            }
+            
+            return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+        function filterTransactions() {
+            loadTransactions();
+        }
+        function updateCategoryFilters() {
+            const categorySelect = document.getElementById('filterCategory');
+            const allCategories = [...new Set([...incomeCategories, ...expenseCategories])];
+            
+            categorySelect.innerHTML = '<option value="all">Todas</option>';
+            allCategories.forEach(category => {
+                categorySelect.innerHTML += `<option value="${category}">${category}</option>`;
+            });
+        }
+        // Task Functions
+        function openTaskModal(taskId = null) {
+            const modal = document.getElementById('taskModal');
+            const form = document.getElementById('taskForm');
+            
+            if (taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    editingTaskId = taskId;
+                    document.getElementById('taskTitle').value = task.title;
+                    document.getElementById('taskDescription').value = task.description;
+                    document.getElementById('taskPriority').value = task.priority;
+                    document.getElementById('taskDueDate').value = task.dueDate;
+                    document.getElementById('taskModalTitle').textContent = 'Editar Tarea';
+                }
+            } else {
+                editingTaskId = null;
+                form.reset();
+                document.getElementById('taskModalTitle').textContent = 'Agregar Tarea';
+            }
+            
+            modal.classList.add('active');
+        }
+        function saveTask(event) {
+            event.preventDefault();
+            
+            const task = {
+                id: editingTaskId || Date.now(),
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                priority: document.getElementById('taskPriority').value,
+                dueDate: document.getElementById('taskDueDate').value,
+                completed: false
+            };
+            
+            if (editingTaskId) {
+                const index = tasks.findIndex(t => t.id === editingTaskId);
+                tasks[index] = { ...tasks[index], ...task };
+                showToast('Tarea actualizada exitosamente');
+            } else {
+                tasks.push(task);
+                showToast('Tarea agregada exitosamente');
+            }
+            
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            loadTasks();
+            updateDashboard();
+            closeModal('taskModal');
+        }
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                loadTasks();
+                updateDashboard();
+                showToast(task.completed ? 'Tarea completada' : 'Tarea marcada como pendiente');
+            }
+        }
+        function deleteTask(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+                tasks = tasks.filter(t => t.id !== id);
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                loadTasks();
+                updateDashboard();
+                showToast('Tarea eliminada');
+            }
+        }
+        function filterTasks(filter) {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            
+            let filteredTasks = [...tasks];
+            
+            switch(filter) {
+                case 'pending':
+                    filteredTasks = filteredTasks.filter(t => !t.completed);
+                    break;
+                case 'completed':
+                    filteredTasks = filteredTasks.filter(t => t.completed);
+                    break;
+                case 'high':
+                    filteredTasks = filteredTasks.filter(t => t.priority === 'high');
+                    break;
+            }
+            
+            filteredTasks.sort((a, b) => {
+                if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                const priorityOrder = { high: 0, medium: 1, low: 2 };
+                return priorityOrder[a.priority] - priorityOrder[b.priority];
+            });
+            
+            filteredTasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
+                taskItem.innerHTML = `
+                    <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} 
+                           onchange="toggleTask(${task.id})">
+                    <div class="task-text">
+                        <strong>${task.title}</strong>
+                        ${task.description ? `<br><small>${task.description}</small>` : ''}
+                        ${task.dueDate ? `<br><small><i class="fas fa-calendar"></i> ${formatDate(task.dueDate)}</small>` : ''}
+                    </div>
+                    <span class="task-priority priority-${task.priority}">
+                        ${task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Media' : 'Baja'}
+                    </span>
+                    <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                taskList.appendChild(taskItem);
+            });
+            
+            if (filteredTasks.length === 0) {
+                taskList.innerHTML = '<p style="text-align: center; color: #6b7280;">No hay tareas</p>';
+            }
+        }
+        function loadTasks() {
+            filterTasks('all');
+        }
+        // Dashboard Functions
+        function updateDashboard() {
+            const totalIncome = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const totalExpenses = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const balance = totalIncome - totalExpenses;
+            
+            document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
+            document.getElementById('balance').textContent = `$${balance.toFixed(2)}`;
+            document.getElementById('totalTasks').textContent = tasks.filter(t => !t.completed).length;
+            
+            updateExpenseChart();
+            updateRecentTasks();
+        }
+        function updateExpenseChart() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            
+            const expensesByCategory = {};
+            transactions
+                .filter(t => t.type === 'expense')
+                .forEach(t => {
+                    expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+                });
+            
+            const labels = Object.keys(expensesByCategory);
+            const data = Object.values(expensesByCategory);
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#ef4444',
+                            '#f59e0b',
+                            '#10b981',
+                            '#3b82f6',
+                            '#8b5cf6',
+                            '#ec4899',
+                            '#14b8a6',
+                            '#f97316'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += '$' + context.parsed.toFixed(2);
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        function updateRecentTasks() {
+            const recentTasksContainer = document.getElementById('recentTasks');
+            const recentTasks = tasks
+                .filter(t => !t.completed)
+                .sort((a, b) => new Date(a.dueDate || '9999-12-31') - new Date(b.dueDate || '9999-12-31'))
+                .slice(0, 3);
+            
+            if (recentTasks.length === 0) {
+                recentTasksContainer.innerHTML = '<p style="color: #6b7280;">No hay tareas pendientes</p>';
+                return;
+            }
+            
+            recentTasksContainer.innerHTML = recentTasks.map(task => `
+                <div style="padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${task.title}</strong>
+                            ${task.dueDate ? `<br><small style="color: #6b7280;">Vence: ${formatDate(task.dueDate)}</small>` : ''}
+                        </div>
+                        <span class="task-priority priority-${task.priority}">
+                            ${task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Media' : 'Baja'}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        // Utility Functions
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            return date.toLocaleDateString('es-ES', options);
+        }
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
